@@ -1,0 +1,1 @@
+// trimmed - content from textdoc
