@@ -1,26 +1,14 @@
-"""Records endpoints."""
-from __future__ import annotations
-
-from fastapi import APIRouter, HTTPException, status
-
-from ..provisioning_api.core.logging import logger
-from ..provisioning_api.schemas.record import RecordsRequest, RecordsResponse
-from ..provisioning_api.services.records_service import get_records
+from fastapi import APIRouter, HTTPException
+from provisioning_api.schemas.record import RecordsRequest, RecordsResponse, Record
+from provisioning_api.services.records_service import get_records
 
 router = APIRouter()
 
 
 @router.post("/records", response_model=RecordsResponse)
-async def read_records(payload: RecordsRequest) -> RecordsResponse:
-    """Fetch provisioning records according to provided filters."""
-
+def post_records(body: RecordsRequest):
     try:
-        items, total = get_records(payload.db.model_dump(), payload.filters.model_dump())
-    except Exception as exc:  # pragma: no cover - defensive
-        logger.exception("Error retrieving records")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No se pudieron obtener los registros",
-        ) from exc
-
-    return RecordsResponse(items=items, total=total)
+        items, total = get_records(body.db.model_dump(), body.filters.model_dump())
+        return {"items": [Record(**r) for r in items], "total": total}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
