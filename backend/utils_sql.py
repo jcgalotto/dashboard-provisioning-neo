@@ -1,23 +1,9 @@
 from __future__ import annotations
 
+from datetime import date, datetime
+from numbers import Number
 from typing import Dict, Iterable, List
 
-
-DATE_COLUMNS = {
-    "pri_action_date",
-    "pri_system_date",
-    "pri_processed_date",
-    "pri_response_date",
-    "pri_priority_date",
-}
-
-NUMERIC_COLUMNS = {
-    "pri_id",
-    "pri_id_sended",
-    "pri_acc_id",
-    "pri_main_pri_id",
-    "pri_sended_count",
-}
 
 COLUMN_ORDER = [
     "pri_id",
@@ -64,35 +50,50 @@ COLUMN_ORDER = [
     "pri_correlator_id",
 ]
 
+SQL_DATE_FORMAT = "YYYY-MM-DD HH24:MI:SS"
+
 
 def _escape_string(value: str) -> str:
     return value.replace("'", "''")
 
 
-def format_value(column: str, value) -> str:
+def _format_datetime(value: datetime) -> str:
+    formatted = value.strftime("%Y-%m-%d %H:%M:%S")
+    return f"TO_DATE('{formatted}','{SQL_DATE_FORMAT}')"
+
+
+def _looks_like_datetime_string(value: str) -> bool:
+    return len(value) >= 16 and "-" in value and ":" in value
+
+
+def esc(value) -> str:  # noqa: ANN001 - especificación externa
     if value is None:
         return "NULL"
 
-    if column in DATE_COLUMNS:
-        return f"TO_DATE('{value}','YYYY-MM-DD HH24:MI:SS')"
+    if isinstance(value, (datetime, date)):
+        if isinstance(value, date) and not isinstance(value, datetime):
+            value = datetime.combine(value, datetime.min.time())
+        return _format_datetime(value)
 
-    if isinstance(value, (int, float)) or column in NUMERIC_COLUMNS:
+    if isinstance(value, Number) and not isinstance(value, bool):
         return str(value)
 
-    return f"'{_escape_string(str(value))}'"
+    text = str(value)
+    if _looks_like_datetime_string(text):
+        return f"TO_DATE('{text}','{SQL_DATE_FORMAT}')"
+
+    return f"'{_escape_string(text)}'"
 
 
 def generate_insert_statements(rows: Iterable[Dict[str, object]]) -> str:
     statements: List[str] = []
     for row in rows:
-        values = [format_value(column, row.get(column)) for column in COLUMN_ORDER]
+        values = [esc(row.get(column)) for column in COLUMN_ORDER]
         value_clause = ", ".join(values)
         statement = (
-            "INSERT INTO swp_provisioning_interfaces (\n  "
-            + ",\n  ".join(COLUMN_ORDER)
-            + f"\n) VALUES ({value_clause});"
+            "INSERT INTO swp_provisioning_interfaces ("
+            + ", ".join(COLUMN_ORDER)
+            + f") VALUES ({value_clause});"
         )
         statements.append(statement)
-    if not statements:
-        return "\n"
-    return "\n".join(statements) + "\n"
+    return "\n".join(statements)

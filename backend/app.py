@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import List
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from oracledb import DatabaseError
 
 from db import oracle_connection
-from models import RecordItem, RecordsRequest, RecordsResponse
+from models import Record, RecordsRequest, RecordsResponse
 from queries import (
     build_count_query,
     build_records_query,
@@ -42,7 +40,7 @@ def get_records(payload: RecordsRequest) -> RecordsResponse:
     try:
         with oracle_connection(payload.db) as connection:
             records_query, records_binds = build_records_query(payload.filters, include_pagination=True)
-            items_data = list(execute_query(connection, records_query, records_binds))
+            items_data = execute_query(connection, records_query, records_binds)
 
             count_query, count_binds = build_count_query(payload.filters)
             total = execute_count(connection, count_query, count_binds)
@@ -55,8 +53,8 @@ def get_records(payload: RecordsRequest) -> RecordsResponse:
         logger.exception("Unexpected error while fetching records")
         raise HTTPException(status_code=500, detail=str(exc))
 
-    items: List[RecordItem] = [RecordItem(**row) for row in items_data]
-    return RecordsResponse(items=items, count=total)
+    items = [Record(**row) for row in items_data]
+    return RecordsResponse(items=items, total=total)
 
 
 @app.post("/generate-inserts")
@@ -64,7 +62,7 @@ def generate_inserts(payload: RecordsRequest) -> Response:
     try:
         with oracle_connection(payload.db) as connection:
             records_query, records_binds = build_records_query(payload.filters, include_pagination=False)
-            rows = list(execute_query(connection, records_query, records_binds))
+            rows = execute_query(connection, records_query, records_binds)
     except DatabaseError as exc:  # pragma: no cover - requires DB
         logger.exception("Database error while generating inserts")
         raise _handle_database_error(exc)
