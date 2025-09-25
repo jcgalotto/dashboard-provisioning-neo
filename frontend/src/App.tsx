@@ -4,7 +4,7 @@ import NLSearch from './components/NLSearch';
 import DbForm from './components/DbForm';
 import FiltersForm from './components/Filters';
 import ResultsTable from './components/ResultsTable';
-import { askAi, downloadInserts, postRecords } from './lib/api';
+import { AskAi, downloadInserts, postRecords } from './lib/api';
 import { AskAiResponse, DbCredentials, Filters, RecordItem } from './types';
 
 const DEFAULT_LIMIT = 200;

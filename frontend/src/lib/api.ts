@@ -1,69 +1,42 @@
-import { ApiPayload, AskAiResponse, RecordsResponse } from '../types';
+// frontend/src/lib/api.ts
+const BASE = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/,'');
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
-const API_URL = `${BASE_URL}/api`;
-
-async function request<T>(path: string, options: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers ?? {}),
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-      const data = await response.json().catch(() => null);
-      const detail = data?.detail ?? 'Error en la solicitud';
-      throw new Error(detail);
-    }
-    const text = await response.text();
-    throw new Error(text || 'Error en la solicitud');
-  }
-
-  return response.json() as Promise<T>;
-}
-
-export function postRecords(payload: ApiPayload): Promise<RecordsResponse> {
-  return request<RecordsResponse>('/records', {
+async function postJSON<T>(path: string, body: any): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} ${res.statusText}${text ? ' - ' + text : ''}`);
+  }
+  return res.json() as Promise<T>;
 }
 
-export async function downloadInserts(payload: ApiPayload): Promise<void> {
-  const response = await fetch(`${API_URL}/generate-inserts`, {
+export function postRecords(payload: any) {
+  return postJSON<{ items: any[]; total: number }>('/records', payload);
+}
+
+export async function downloadInserts(payload: any) {
+  const res = await fetch(`${BASE}/generate-inserts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-      const data = await response.json().catch(() => null);
-      const detail = data?.detail ?? 'No se pudo generar el archivo de INSERTs';
-      throw new Error(detail);
-    }
-    throw new Error('No se pudo generar el archivo de INSERTs');
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} ${res.statusText}${text ? ' - ' + text : ''}`);
   }
-
-  const blob = await response.blob();
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'provisioning_inserts.sql';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'provisioning_inserts.sql';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-export function askAi(text: string): Promise<AskAiResponse> {
-  return request<AskAiResponse>('/ai/ask', {
-    method: 'POST',
-    body: JSON.stringify({ text }),
-  });
+export function askAi(text: string) {
+  return postJSON<{ filters: any; sql: string; errors: string[] }>('/ai/ask', { text });
 }

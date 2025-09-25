@@ -51,7 +51,7 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate  # En Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn provisioning_api.main:provisioning_api --reload
 ```
 
 La API queda disponible en `http://localhost:8000`.
