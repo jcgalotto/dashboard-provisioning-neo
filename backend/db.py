@@ -6,6 +6,9 @@ import oracledb
 from models import DbCredentials
 
 
+oracledb.defaults.fetch_lobs = False
+
+
 @contextmanager
 def oracle_connection(credentials: DbCredentials) -> Iterator[oracledb.Connection]:
     dsn = f"{credentials.host}:{credentials.port}/{credentials.service}"
@@ -13,7 +16,6 @@ def oracle_connection(credentials: DbCredentials) -> Iterator[oracledb.Connectio
         user=credentials.user,
         password=credentials.password,
         dsn=dsn,
-        encoding="UTF-8",
     )
     try:
         yield connection

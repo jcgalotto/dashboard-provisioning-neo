@@ -33,7 +33,7 @@ export default function App() {
   const [credentials, setCredentials] = useState<DbCredentials>(initialCredentials);
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [items, setItems] = useState<RecordItem[]>([]);
-  const [count, setCount] = useState(0);
+  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export default function App() {
     try {
       const response = await fetchRecords(payload);
       setItems(response.items);
-      setCount(response.count);
+      setTotal(response.total);
       setPage(targetPage);
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : 'No se pudieron obtener los registros.';
@@ -163,7 +163,7 @@ export default function App() {
         )}
         <DbForm credentials={credentials} onChange={setCredentials} />
         <FiltersForm filters={filters} onChange={setFilters} onSearch={() => handleSearch(0)} onGenerate={handleGenerateInserts} loading={loading} />
-        <ResultsTable items={items} count={count} limit={DEFAULT_LIMIT} page={page} loading={loading} onPageChange={handlePageChange} />
+        <ResultsTable items={items} total={total} limit={DEFAULT_LIMIT} page={page} loading={loading} onPageChange={handlePageChange} />
       </main>
     </div>
   );

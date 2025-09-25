@@ -2,7 +2,7 @@ import { RecordItem } from '../types';
 
 interface ResultsTableProps {
   items: RecordItem[];
-  count: number;
+  total: number;
   limit: number;
   page: number;
   loading: boolean;
@@ -54,11 +54,11 @@ const columns: { key: keyof RecordItem; label: string }[] = [
   { key: 'pri_correlator_id', label: 'pri_correlator_id' },
 ];
 
-export default function ResultsTable({ items, count, limit, page, loading, onPageChange }: ResultsTableProps) {
+export default function ResultsTable({ items, total, limit, page, loading, onPageChange }: ResultsTableProps) {
   const start = page * limit + (items.length > 0 ? 1 : 0);
   const end = page * limit + items.length;
   const hasPrevious = page > 0;
-  const hasNext = (page + 1) * limit < count;
+  const hasNext = (page + 1) * limit < total;
 
   return (
     <section className="rounded-lg bg-white p-4 shadow">
@@ -67,8 +67,8 @@ export default function ResultsTable({ items, count, limit, page, loading, onPag
         <p className="text-sm text-slate-500">
           {loading
             ? 'Cargando…'
-            : count > 0
-            ? `Mostrando ${start}-${end} de ${count} registros`
+            : total > 0
+            ? `Mostrando ${start}-${end} de ${total} registros`
             : 'Sin resultados'}
         </p>
       </div>
@@ -94,11 +94,12 @@ export default function ResultsTable({ items, count, limit, page, loading, onPag
               items.map((item, rowIndex) => (
                 <tr key={`${item.pri_id ?? rowIndex}-${rowIndex}`} className="odd:bg-white even:bg-slate-50">
                   {columns.map((column) => {
-                    const value = item[column.key];
-                    const displayValue = value ?? '';
+                    const rawValue = item[column.key];
+                    const displayValue = rawValue ?? '';
+                    const textValue = rawValue === null || rawValue === undefined ? '' : String(rawValue);
                     return (
                       <td key={column.key as string} className="max-w-[220px] px-3 py-2 align-top">
-                        <span className="block truncate" title={displayValue?.toString()}>
+                        <span className="block truncate" title={textValue}>
                           {displayValue}
                         </span>
                       </td>

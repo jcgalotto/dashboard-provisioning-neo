@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field, validator
 
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+Num = Union[int, float, str]
 
 
 class DbCredentials(BaseModel):
@@ -31,17 +32,15 @@ class FilterParams(BaseModel):
         try:
             datetime.strptime(value, DATETIME_FORMAT)
         except ValueError as exc:  # pragma: no cover - defensive
-            raise ValueError(
-                "El formato de fecha debe ser YYYY-MM-DD HH:MM:SS"
-            ) from exc
+            raise ValueError("El formato de fecha debe ser YYYY-MM-DD HH:MM:SS") from exc
         return value
 
     @validator("pri_action")
-    def strip_empty_action(cls, value: Optional[str]) -> Optional[str]:
+    def normalize_action(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return value
-        value = value.strip()
-        return value or None
+        stripped = value.strip()
+        return stripped or None
 
 
 class RecordsRequest(BaseModel):
@@ -49,54 +48,51 @@ class RecordsRequest(BaseModel):
     filters: FilterParams
 
 
-class RecordItem(BaseModel):
-    pri_id: Optional[int]
-    pri_cellular_number: Optional[str]
-    pri_sim_msisdn: Optional[str]
-    pri_sim_imsi: Optional[str]
-    pri_action: Optional[str]
-    pri_level_action: Optional[str]
-    pri_status: Optional[str]
-    pri_action_date: Optional[str]
-    pri_system_date: Optional[str]
-    pri_ne_type: Optional[str]
-    pri_ne_id: Optional[str]
-    pri_ne_service: Optional[str]
-    pri_source_application: Optional[str]
-    pri_source_app_id: Optional[str]
-    pri_sis_id: Optional[str]
-    pri_error_code: Optional[str]
-    pri_message_error: Optional[str]
-    pri_correlation_id: Optional[str]
-    pri_reason_code: Optional[str]
-    pri_processed_date: Optional[str]
-    pri_in_queue: Optional[str]
-    pri_response_date: Optional[str]
-    pri_delivered_safir: Optional[str]
-    pri_received_safir: Optional[str]
-    pri_id_sended: Optional[int]
-    pri_user_sender: Optional[str]
-    pri_ne_entity: Optional[str]
-    pri_acc_id: Optional[int]
-    pri_main_pri_id: Optional[int]
-    pri_resp_manager: Optional[str]
-    pri_usr_id: Optional[str]
-    pri_priority_usr: Optional[str]
-    pri_priority_date: Optional[str]
-    pri_save_last_tx_status: Optional[str]
-    pri_crm_action: Optional[str]
-    pri_request: Optional[str]
-    pri_response: Optional[str]
-    pri_sended_count: Optional[int]
-    pri_main_sis_id: Optional[str]
-    pri_imei: Optional[str]
-    pri_card_number: Optional[str]
-    pri_correlator_id: Optional[str]
+class Record(BaseModel):
+    pri_id: int
+    pri_cellular_number: Optional[str] = None
+    pri_sim_msisdn: Optional[str] = None
+    pri_sim_imsi: Optional[str] = None
+    pri_action: Optional[str] = None
+    pri_level_action: Optional[str] = None
+    pri_status: Optional[str] = None
+    pri_action_date: Optional[str] = None
+    pri_system_date: Optional[str] = None
+    pri_ne_type: Optional[str] = None
+    pri_ne_id: Optional[str] = None
+    pri_ne_service: Optional[str] = None
+    pri_source_application: Optional[str] = None
+    pri_source_app_id: Optional[str] = None
+    pri_sis_id: Optional[Num] = None
+    pri_error_code: Optional[str] = None
+    pri_message_error: Optional[str] = None
+    pri_correlation_id: Optional[Num] = None
+    pri_reason_code: Optional[str] = None
+    pri_processed_date: Optional[str] = None
+    pri_in_queue: Optional[str] = None
+    pri_response_date: Optional[str] = None
+    pri_delivered_safir: Optional[str] = None
+    pri_received_safir: Optional[str] = None
+    pri_id_sended: Optional[Num] = None
+    pri_user_sender: Optional[str] = None
+    pri_ne_entity: Optional[str] = None
+    pri_acc_id: Optional[Num] = None
+    pri_main_pri_id: Optional[Num] = None
+    pri_resp_manager: Optional[str] = None
+    pri_usr_id: Optional[Num] = None
+    pri_priority_usr: Optional[str] = None
+    pri_priority_date: Optional[str] = None
+    pri_save_last_tx_status: Optional[str] = None
+    pri_crm_action: Optional[str] = None
+    pri_request: Optional[str] = None
+    pri_response: Optional[str] = None
+    pri_sended_count: Optional[Num] = None
+    pri_main_sis_id: Optional[Num] = None
+    pri_imei: Optional[str] = None
+    pri_card_number: Optional[str] = None
+    pri_correlator_id: Optional[Num] = None
 
 
 class RecordsResponse(BaseModel):
-    items: List[RecordItem]
-    count: int
-
-    def dict(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:  # pragma: no cover - FastAPI compatibility
-        return super().dict(*args, **kwargs)
+    items: list[Record]
+    total: int

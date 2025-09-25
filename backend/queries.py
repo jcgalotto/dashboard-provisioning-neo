@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 from models import FilterParams
 
@@ -21,15 +21,15 @@ SELECT_COLUMNS = """
   a.pri_source_application,
   a.pri_source_app_id,
   a.pri_sis_id,
-  a.pri_error_code,
+  TO_CHAR(a.pri_error_code) AS pri_error_code,
   a.pri_message_error,
   a.pri_correlation_id,
   a.pri_reason_code,
   TO_CHAR(a.pri_processed_date, 'YYYY-MM-DD HH24:MI:SS') AS pri_processed_date,
-  a.pri_in_queue,
+  TO_CHAR(a.pri_in_queue, 'YYYY-MM-DD HH24:MI:SS') AS pri_in_queue,
   TO_CHAR(a.pri_response_date, 'YYYY-MM-DD HH24:MI:SS') AS pri_response_date,
-  a.pri_delivered_safir,
-  a.pri_received_safir,
+  TO_CHAR(a.pri_delivered_safir, 'YYYY-MM-DD HH24:MI:SS') AS pri_delivered_safir,
+  TO_CHAR(a.pri_received_safir, 'YYYY-MM-DD HH24:MI:SS') AS pri_received_safir,
   a.pri_id_sended,
   a.pri_user_sender,
   a.pri_ne_entity,
@@ -101,7 +101,7 @@ def rows_to_dicts(cursor) -> List[Dict[str, object]]:
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-def execute_query(connection, query: str, binds: Dict[str, object]) -> Iterable[Dict[str, object]]:
+def execute_query(connection, query: str, binds: Dict[str, object]) -> List[Dict[str, object]]:
     cursor = connection.cursor()
     try:
         cursor.execute(query, binds)
