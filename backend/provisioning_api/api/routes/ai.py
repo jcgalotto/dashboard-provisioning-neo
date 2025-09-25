@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-from fastapi import Body
+from fastapi import APIRouter, Body
 from provisioning_api.ai.graph import run_pipeline
 
 router = APIRouter()
