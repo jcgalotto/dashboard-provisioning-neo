@@ -1,6 +1,8 @@
-fastapi==0.110.2
-uvicorn[standard]==0.29.0
-python-oracledb==1.4.2
-pydantic==2.7.1
-dateparser==1.2.0
-langgraph==0.0.63
+fastapi
+uvicorn[standard]
+oracledb
+python-dotenv
+pydantic>=2.3
+pydantic-settings>=2.2
+dateparser
+langgraph

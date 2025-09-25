@@ -8,7 +8,7 @@ from typing import Any, Dict
 from dateparser.search import search_dates
 from langgraph.graph import END, StateGraph
 
-from ..provisioning_api.db.sql.queries import build_sql
+from provisioning_api.db.sql.queries import build_sql
 
 State = Dict[str, Any]
 
@@ -45,7 +45,7 @@ def parse_text(state: State) -> State:
     if action_match:
         filters["pri_action"] = action_match.group(1).upper()
 
-    filters.setdefault("limit", 100)
+    filters.setdefault("limit", 200)
     filters.setdefault("offset", 0)
 
     return {**state, "filters": filters, "errors": errors}
@@ -83,7 +83,7 @@ def prepare_sql(state: State) -> State:
         "start_date": filters["start_date"],
         "end_date": filters["end_date"],
         "pri_ne_id": filters["pri_ne_id"],
-        "limit": filters.get("limit", 100),
+        "limit": filters.get("limit", 200),
         "offset": filters.get("offset", 0),
     }
     if filters.get("pri_id") is not None:
