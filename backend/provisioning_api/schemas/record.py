@@ -68,6 +68,8 @@ class Filters(BaseModel):
     pri_ne_id: str
     pri_id: Optional[int] = None
     pri_action: Optional[str] = None
+    pri_ne_group: Optional[str] = None
+    pri_status: Optional[str] = None
     limit: int = 200
     offset: int = 0
 

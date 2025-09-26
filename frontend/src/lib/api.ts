@@ -16,6 +16,11 @@ async function postJSON<T>(path: string, body: any): Promise<T> {
 export const postRecords = (payload: any) =>
   postJSON<{ items: any[]; total: number }>("/records", payload);
 
+export function fetchOptions(payload: any) {
+  // usa el mismo RecordsRequest: db + filters (con pri_ne_id y fechas)
+  return postJSON<import("../types").OptionsResponse>("/options", payload);
+}
+
 export async function downloadInserts(payload: any) {
   const res = await fetch(`${BASE}/generate-inserts`, {
     method: "POST",
