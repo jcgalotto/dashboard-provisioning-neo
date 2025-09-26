@@ -22,8 +22,6 @@ const initialFilters: Filters = {
   start_date: '',
   end_date: '',
   pri_ne_id: '',
-  pri_id: '',
-  pri_action: '',
   limit: DEFAULT_LIMIT,
   offset: 0,
 };
@@ -75,18 +73,17 @@ export default function App() {
       return 'El formato de fecha debe ser YYYY-MM-DD HH:MM:SS.';
     }
 
-    if (filters.pri_id && Number.isNaN(Number(filters.pri_id))) {
-      return 'pri_id debe ser numérico.';
-    }
-
     return null;
   };
 
   const buildPayload = (targetPage: number) => {
     const priAction = sanitize(filters.pri_action ?? '').toUpperCase();
-    const priIdValue = sanitize(filters.pri_id ?? '');
+    const priNeGroup = sanitize(filters.pri_ne_group ?? '').toUpperCase();
+    const priStatus = sanitize(filters.pri_status ?? '').toUpperCase();
+    const priIdValue = filters.pri_id;
     const priNeId = sanitize(filters.pri_ne_id).toUpperCase();
-    const offset = targetPage * filters.limit;
+    const limit = filters.limit ?? DEFAULT_LIMIT;
+    const offset = targetPage * limit;
 
     return {
       db: normalizedCredentials,
@@ -94,9 +91,11 @@ export default function App() {
         start_date: sanitize(filters.start_date),
         end_date: sanitize(filters.end_date),
         pri_ne_id: priNeId,
-        ...(priIdValue ? { pri_id: Number(priIdValue) } : {}),
+        ...(priIdValue !== undefined ? { pri_id: priIdValue } : {}),
         ...(priAction ? { pri_action: priAction } : {}),
-        limit: filters.limit,
+        ...(priNeGroup ? { pri_ne_group: priNeGroup } : {}),
+        ...(priStatus ? { pri_status: priStatus } : {}),
+        limit,
         offset,
       },
     };
@@ -118,7 +117,7 @@ export default function App() {
       setItems(response.items);
       setTotal(response.total);
       setPage(targetPage);
-      setFilters((previous) => ({ ...previous, offset: payload.filters.offset }));
+      setFilters((previous) => ({ ...previous, offset: payload.filters.offset, limit: payload.filters.limit }));
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : 'No se pudieron obtener los registros.';
       setError(message);
@@ -129,7 +128,8 @@ export default function App() {
 
   const handlePageChange = (nextPage: number) => {
     if (nextPage < 0 || nextPage === page) return;
-    const maxPage = Math.max(Math.ceil(total / filters.limit) - 1, 0);
+    const limit = filters.limit ?? DEFAULT_LIMIT;
+    const maxPage = Math.max(Math.ceil(total / limit) - 1, 0);
     if (nextPage > maxPage) return;
     handleSearch(nextPage);
   };
@@ -179,10 +179,16 @@ export default function App() {
       pri_ne_id: aiResult.filters.pri_ne_id
         ? String(aiResult.filters.pri_ne_id).toUpperCase()
         : previous.pri_ne_id,
-      pri_id: aiResult.filters.pri_id !== undefined ? String(aiResult.filters.pri_id) : previous.pri_id,
+      pri_id: aiResult.filters.pri_id !== undefined ? Number(aiResult.filters.pri_id) : previous.pri_id,
       pri_action: aiResult.filters.pri_action
         ? String(aiResult.filters.pri_action).toUpperCase()
         : previous.pri_action,
+      pri_ne_group: aiResult.filters.pri_ne_group
+        ? String(aiResult.filters.pri_ne_group).toUpperCase()
+        : previous.pri_ne_group,
+      pri_status: aiResult.filters.pri_status
+        ? String(aiResult.filters.pri_status).toUpperCase()
+        : previous.pri_status,
       offset: 0,
     }));
   };
@@ -205,6 +211,7 @@ export default function App() {
         <DbForm credentials={credentials} onChange={setCredentials} />
         <FiltersForm
           filters={filters}
+          credentials={normalizedCredentials}
           onChange={setFilters}
           onSearch={() => handleSearch(0)}
           onGenerate={handleGenerateInserts}
@@ -213,7 +220,7 @@ export default function App() {
         <ResultsTable
           items={items}
           total={total}
-          limit={filters.limit}
+          limit={filters.limit ?? DEFAULT_LIMIT}
           page={page}
           loading={loading}
           onPageChange={handlePageChange}

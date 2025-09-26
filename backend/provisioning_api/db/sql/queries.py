@@ -15,6 +15,12 @@ def build_sql(filters: dict, include_pagination: bool, use_legacy_pagination: bo
     if filters.get("pri_action"):
         where.append("a.pri_action = :pri_action")
         binds["pri_action"] = filters["pri_action"]
+    if filters.get("pri_ne_group"):
+        where.append("a.pri_ne_group = :pri_ne_group")
+        binds["pri_ne_group"] = filters["pri_ne_group"]
+    if filters.get("pri_status"):
+        where.append("a.pri_status = :pri_status")
+        binds["pri_status"] = filters["pri_status"]
 
     base_select = f"""
     SELECT
