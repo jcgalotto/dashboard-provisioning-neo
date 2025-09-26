@@ -67,7 +67,14 @@ def _parse_range_free(text: str, now: Optional[datetime] = None) -> SPAN:
     - “este mes hasta hoy”, “esta semana hasta hoy” (fin = hoy)
     """
     now = now or datetime.now()
-    base_parse = lambda s: dateparser.parse(s, languages=["es"], settings={"PREFER_DATES_FROM": "past"})  # type: ignore
+
+    # import perezoso para no romper el arranque si falla dateparser
+    try:
+        import dateparser  # type: ignore
+        base_parse = lambda s: dateparser.parse(s, languages=["es"], settings={"PREFER_DATES_FROM": "past"})
+    except Exception:
+        # sin dateparser: volvemos a hoy-hoy para no tirar abajo la API
+        return _day_bounds(now)
 
     t = re.sub(r"\s+", " ", text.strip().lower())
 
