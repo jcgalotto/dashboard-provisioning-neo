@@ -1,5 +1,5 @@
 fastapi
-uvicorn[standard]
+uvicorn[standard]   q
 oracledb
 python-dotenv
 pydantic>=2.3
