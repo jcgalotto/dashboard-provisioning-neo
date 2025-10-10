@@ -3,12 +3,41 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { fetchOptions } from '../lib/api';
 import { DbCredentials, Filters, OptionsResponse } from '../types';
 
+export const sanitizeFilters = (f: Filters): Filters => {
+  const cleaned: Record<string, unknown> = {};
+  Object.entries(f).forEach(([key, value]) => {
+    if (value === '' || value === 'TODOS' || value === null || value === undefined) {
+      return;
+    }
+    if (key === 'pri_id') {
+      const numeric = Number(value);
+      if (!Number.isNaN(numeric)) {
+        cleaned[key] = numeric;
+      }
+      return;
+    }
+    if (key === 'limit') {
+      const numericLimit = Math.max(1, parseInt(String(value), 10));
+      cleaned[key] = numericLimit;
+      return;
+    }
+    cleaned[key] = value;
+  });
+  if (cleaned.limit === undefined) {
+    cleaned.limit = 200;
+  }
+  if (cleaned.offset === undefined) {
+    cleaned.offset = 0;
+  }
+  return cleaned as Filters;
+};
+
 interface FiltersProps {
   filters: Filters;
   credentials: DbCredentials;
   onChange: (filters: Filters) => void;
-  onSearch: () => void;
-  onGenerate: () => void;
+  onSearch: (filters: Filters) => void;
+  onGenerate: (filters: Filters) => void;
   loading: boolean;
 }
 
@@ -90,6 +119,14 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
       return;
     }
     onChange({ ...filters, [name]: value || undefined });
+  };
+
+  const handleSearchClick = () => {
+    onSearch(sanitizeFilters(filters));
+  };
+
+  const handleGenerateClick = () => {
+    onGenerate(sanitizeFilters(filters));
   };
 
   return (
@@ -208,7 +245,7 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
-          onClick={onSearch}
+          onClick={handleSearchClick}
           disabled={loading}
           className="inline-flex items-center justify-center rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300"
         >
@@ -216,7 +253,7 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
         </button>
         <button
           type="button"
-          onClick={onGenerate}
+          onClick={handleGenerateClick}
           disabled={loading}
           className="inline-flex items-center justify-center rounded border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:border-indigo-300 disabled:text-indigo-300"
         >

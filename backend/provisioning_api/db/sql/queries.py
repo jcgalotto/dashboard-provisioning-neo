@@ -1,3 +1,12 @@
+def _is_set(val):
+    if val is None:
+        return False
+    text = str(val).strip()
+    if text == "":
+        return False
+    return text.upper() != "TODOS"
+
+
 def build_sql(filters: dict, include_pagination: bool, use_legacy_pagination: bool = False):
     where = [
         "a.pri_action_date BETWEEN TO_DATE(:start_date,'YYYY-MM-DD HH24:MI:SS') "
@@ -9,18 +18,18 @@ def build_sql(filters: dict, include_pagination: bool, use_legacy_pagination: bo
         "end_date": filters["end_date"],
         "pri_ne_id": filters["pri_ne_id"],
     }
-    if filters.get("pri_id") is not None:
+    if _is_set(filters.get("pri_id")):
         where.append("a.pri_id = :pri_id")
-        binds["pri_id"] = filters["pri_id"]
-    if filters.get("pri_action"):
+        binds["pri_id"] = filters.get("pri_id")
+    if _is_set(filters.get("pri_action")):
         where.append("a.pri_action = :pri_action")
-        binds["pri_action"] = filters["pri_action"]
-    if filters.get("pri_ne_group"):
+        binds["pri_action"] = filters.get("pri_action")
+    if _is_set(filters.get("pri_ne_group")):
         where.append("a.pri_ne_group = :pri_ne_group")
-        binds["pri_ne_group"] = filters["pri_ne_group"]
-    if filters.get("pri_status"):
+        binds["pri_ne_group"] = filters.get("pri_ne_group")
+    if _is_set(filters.get("pri_status")):
         where.append("a.pri_status = :pri_status")
-        binds["pri_status"] = filters["pri_status"]
+        binds["pri_status"] = filters.get("pri_status")
 
     where_clause = " AND ".join(where)
     select_columns = [
