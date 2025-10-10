@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 import NLSearch from './components/NLSearch';
 import DbForm from './components/DbForm';
-import FiltersForm from './components/Filters';
+import FiltersForm, { sanitizeFilters } from './components/Filters';
 import ResultsTable from './components/ResultsTable';
 import { askAi, downloadInserts, postRecords } from './lib/api';
 import { AskAiResponse, DbCredentials, Filters, RecordItem } from './types';
@@ -76,39 +76,42 @@ export default function App() {
     return null;
   };
 
-  const buildPayload = (targetPage: number) => {
-    const priAction = sanitize(filters.pri_action ?? '').toUpperCase();
-    const priNeGroup = sanitize(filters.pri_ne_group ?? '').toUpperCase();
-    const priStatus = sanitize(filters.pri_status ?? '').toUpperCase();
-    const priIdValue = filters.pri_id;
-    const priNeId = sanitize(filters.pri_ne_id).toUpperCase();
-    const limit = filters.limit ?? DEFAULT_LIMIT;
+  const buildPayload = (targetPage: number, rawFilters: Filters) => {
+    const normalizedFilters: Filters = {
+      ...rawFilters,
+      start_date: sanitize(rawFilters.start_date),
+      end_date: sanitize(rawFilters.end_date),
+      pri_ne_id: sanitize(rawFilters.pri_ne_id).toUpperCase(),
+      pri_action: rawFilters.pri_action ? String(rawFilters.pri_action).toUpperCase() : rawFilters.pri_action,
+      pri_ne_group: rawFilters.pri_ne_group ? String(rawFilters.pri_ne_group).toUpperCase() : rawFilters.pri_ne_group,
+      pri_status: rawFilters.pri_status ? String(rawFilters.pri_status).toUpperCase() : rawFilters.pri_status,
+    };
+
+    const cleanedFilters = sanitizeFilters(normalizedFilters);
+    const limit = cleanedFilters.limit ?? DEFAULT_LIMIT;
     const offset = targetPage * limit;
 
     return {
       db: normalizedCredentials,
       filters: {
-        start_date: sanitize(filters.start_date),
-        end_date: sanitize(filters.end_date),
-        pri_ne_id: priNeId,
-        ...(priIdValue !== undefined ? { pri_id: priIdValue } : {}),
-        ...(priAction ? { pri_action: priAction } : {}),
-        ...(priNeGroup ? { pri_ne_group: priNeGroup } : {}),
-        ...(priStatus ? { pri_status: priStatus } : {}),
+        ...cleanedFilters,
+        start_date: sanitize(normalizedFilters.start_date),
+        end_date: sanitize(normalizedFilters.end_date),
+        pri_ne_id: normalizedFilters.pri_ne_id,
         limit,
         offset,
       },
     };
   };
 
-  const handleSearch = async (targetPage = 0) => {
+  const handleSearch = async (targetPage = 0, providedFilters?: Filters) => {
     const validationError = validateInputs();
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    const payload = buildPayload(targetPage);
+    const payload = buildPayload(targetPage, providedFilters ?? filters);
 
     setLoading(true);
     setError(null);
@@ -134,14 +137,14 @@ export default function App() {
     handleSearch(nextPage);
   };
 
-  const handleGenerateInserts = async () => {
+  const handleGenerateInserts = async (providedFilters?: Filters) => {
     const validationError = validateInputs();
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    const payload = buildPayload(0);
+    const payload = buildPayload(0, providedFilters ?? filters);
 
     setLoading(true);
     setError(null);
@@ -213,8 +216,8 @@ export default function App() {
           filters={filters}
           credentials={normalizedCredentials}
           onChange={setFilters}
-          onSearch={() => handleSearch(0)}
-          onGenerate={handleGenerateInserts}
+          onSearch={(cleanedFilters) => handleSearch(0, cleanedFilters)}
+          onGenerate={(cleanedFilters) => handleGenerateInserts(cleanedFilters)}
           loading={loading}
         />
         <ResultsTable

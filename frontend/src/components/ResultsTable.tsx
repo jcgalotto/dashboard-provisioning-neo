@@ -57,10 +57,7 @@ const columns: { key: keyof RecordItem; label: string }[] = [
 export default function ResultsTable({ items, total, limit, page, loading, onPageChange }: ResultsTableProps) {
   const shown = items.length;
   const totalShown = Math.min(total, limit ?? total);
-  const summary =
-    shown > 0
-      ? `Mostrando 1-${shown} de ${totalShown}${limit ? ` (límite ${limit})` : ''}`
-      : 'Sin resultados';
+  const summary = shown > 0 ? `Mostrando 1-${shown} de ${totalShown} (límite ${limit})` : 'Sin resultados';
   const hasPrevious = page > 0;
   const hasNext = (page + 1) * limit < total;
 

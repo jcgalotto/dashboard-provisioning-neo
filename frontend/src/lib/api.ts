@@ -15,15 +15,40 @@ async function postJSON<T>(path: string, body: any): Promise<T> {
   return r.json() as Promise<T>;
 }
 
+function scrub(body: any) {
+  const filters = body?.filters ?? {};
+  const cleaned: Record<string, unknown> = {};
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value === '' || value === 'TODOS' || value === null || value === undefined) {
+      return;
+    }
+    if (key === 'pri_id') {
+      const numeric = Number(value);
+      if (!Number.isNaN(numeric)) {
+        cleaned[key] = numeric;
+      }
+      return;
+    }
+    if (key === 'limit') {
+      const numericLimit = Math.max(1, parseInt(String(value), 10));
+      cleaned[key] = numericLimit;
+      return;
+    }
+    cleaned[key] = value;
+  });
+  return { ...body, filters: { ...cleaned } };
+}
+
 export function postRecords(payload: any) {
-  return postJSON<{ items: any[]; total: number }>('/records', payload);
+  return postJSON<{ items: any[]; total: number }>('/records', scrub(payload));
 }
 
 export async function downloadInserts(payload: any) {
+  const cleanPayload = scrub(payload);
   const r = await fetch(`${BASE}/generate-inserts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(cleanPayload),
   });
   if (!r.ok) {
     const text = await r.text().catch(() => '');
