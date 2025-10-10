@@ -16,7 +16,9 @@ def fetch_records(con, filters: dict, paginated: bool = True):
 
     items = fetch_all(con, select_sql, binds)
 
-    # COUNT sin offset/limit
-    binds_count = {k: v for k, v in binds.items() if k not in ("offset", "limit")}
-    total = fetch_all(con, count_sql, binds_count)[0]["total"] if count_sql else len(items)
+    if paginated:
+        binds_count = {k: v for k, v in binds.items() if k not in ("offset", "limit")}
+        total = fetch_all(con, count_sql, binds_count)[0]["total"] if count_sql else len(items)
+    else:
+        total = fetch_all(con, count_sql, binds)[0]["total"] if count_sql else len(items)
     return items, int(total)
