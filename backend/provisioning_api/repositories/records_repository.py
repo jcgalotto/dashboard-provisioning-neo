@@ -1,4 +1,4 @@
-from provisioning_api.db.oracle import fetch_all
+from provisioning_api.db.oracle import fetch_all, fetch_count
 from provisioning_api.db.sql.queries import build_sql
 
 def _supports_offset_fetch(con) -> bool:
@@ -18,7 +18,7 @@ def fetch_records(con, filters: dict, paginated: bool = True):
 
     if paginated:
         binds_count = {k: v for k, v in binds.items() if k not in ("offset", "limit")}
-        total = fetch_all(con, count_sql, binds_count)[0]["total"] if count_sql else len(items)
+        total = fetch_count(con, count_sql, binds_count) if count_sql else len(items)
     else:
-        total = fetch_all(con, count_sql, binds)[0]["total"] if count_sql else len(items)
+        total = fetch_count(con, count_sql, binds) if count_sql else len(items)
     return items, int(total)
