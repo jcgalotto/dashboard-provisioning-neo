@@ -19,33 +19,35 @@ const EMPTY_OPTIONS: OptionsResponse = { pri_action: [], pri_ne_group: [], pri_s
 export default function FiltersForm({ filters, credentials, onChange, onSearch, onGenerate, loading }: FiltersProps) {
   const [opts, setOpts] = useState<OptionsResponse>(EMPTY_OPTIONS);
   const [loadingOpts, setLoadingOpts] = useState(false);
+  const [optsLoaded, setOptsLoaded] = useState(false);
 
   useEffect(() => {
-    const canLoad = Boolean(filters.pri_ne_id && filters.start_date && filters.end_date);
-    if (!canLoad) {
+    const { pri_ne_id, start_date, end_date } = filters;
+    if (!pri_ne_id || !start_date || !end_date) {
       setOpts(EMPTY_OPTIONS);
+      setOptsLoaded(false);
       setLoadingOpts(false);
       return;
     }
+
     let cancelled = false;
     setLoadingOpts(true);
+    setOptsLoaded(false);
     setOpts(EMPTY_OPTIONS);
     fetchOptions({
       db: credentials,
-      filters: {
-        pri_ne_id: filters.pri_ne_id,
-        start_date: filters.start_date,
-        end_date: filters.end_date,
-      },
+      filters: { pri_ne_id, start_date, end_date },
     })
-      .then((response) => {
+      .then((data: OptionsResponse) => {
         if (!cancelled) {
-          setOpts(response);
+          setOpts(data);
+          setOptsLoaded(true);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setOpts(EMPTY_OPTIONS);
+          setOptsLoaded(true);
         }
       })
       .finally(() => {
@@ -142,9 +144,9 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
             name="pri_action"
             value={filters.pri_action ?? ''}
             onChange={handleChange}
-            disabled={loadingOpts || !filters.pri_ne_id || !opts.pri_action.length}
+            disabled={loadingOpts || !optsLoaded}
           >
-            <option value="">Todos</option>
+            <option value="">TODOS</option>
             {opts.pri_action.map((value) => (
               <option key={value} value={value}>
                 {value}
@@ -159,9 +161,9 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
             name="pri_ne_group"
             value={filters.pri_ne_group ?? ''}
             onChange={handleChange}
-            disabled={loadingOpts || !filters.pri_ne_id || !opts.pri_ne_group.length}
+            disabled={loadingOpts || !optsLoaded}
           >
-            <option value="">Todos</option>
+            <option value="">TODOS</option>
             {opts.pri_ne_group.map((value) => (
               <option key={value} value={value}>
                 {value}
@@ -176,9 +178,9 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
             name="pri_status"
             value={filters.pri_status ?? ''}
             onChange={handleChange}
-            disabled={loadingOpts || !filters.pri_ne_id || !opts.pri_status.length}
+            disabled={loadingOpts || !optsLoaded}
           >
-            <option value="">Todos</option>
+            <option value="">TODOS</option>
             {opts.pri_status.map((value) => (
               <option key={value} value={value}>
                 {value}

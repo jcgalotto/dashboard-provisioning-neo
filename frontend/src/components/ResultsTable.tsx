@@ -55,8 +55,12 @@ const columns: { key: keyof RecordItem; label: string }[] = [
 ];
 
 export default function ResultsTable({ items, total, limit, page, loading, onPageChange }: ResultsTableProps) {
-  const start = page * limit + (items.length > 0 ? 1 : 0);
-  const end = page * limit + items.length;
+  const shown = items.length;
+  const totalShown = Math.min(total, limit ?? total);
+  const summary =
+    shown > 0
+      ? `Mostrando 1-${shown} de ${totalShown}${limit ? ` (límite ${limit})` : ''}`
+      : 'Sin resultados';
   const hasPrevious = page > 0;
   const hasNext = (page + 1) * limit < total;
 
@@ -64,13 +68,7 @@ export default function ResultsTable({ items, total, limit, page, loading, onPag
     <section className="rounded-lg bg-white p-4 shadow">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-slate-700">Resultados</h2>
-        <p className="text-sm text-slate-500">
-          {loading
-            ? 'Cargando…'
-            : total > 0
-            ? `Mostrando ${start}-${end} de ${total} registros`
-            : 'Sin resultados'}
-        </p>
+        <p className="text-sm text-slate-500">{loading ? 'Cargando…' : summary}</p>
       </div>
       <div className="max-h-[480px] overflow-auto rounded border border-slate-200">
         <table className="min-w-full table-auto text-left text-xs">

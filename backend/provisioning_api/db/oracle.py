@@ -77,3 +77,10 @@ def fetch_all(con, sql: str, binds: dict) -> list[dict]:
         rows = cur.fetchall()
         cols = [d[0].lower() for d in cur.description]
     return [dict(zip(cols, r)) for r in rows]
+
+
+def fetch_count(con, sql: str, binds: dict) -> int:
+    with con.cursor() as cur:
+        cur.execute(sql, binds)
+        row = cur.fetchone()
+    return int(row[0] if row else 0)

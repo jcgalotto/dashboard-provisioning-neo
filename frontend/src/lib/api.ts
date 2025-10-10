@@ -1,3 +1,5 @@
+import type { AskAiResponse, OptionsResponse } from '../types';
+
 const BASE = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api').replace(/\/+$/, '');
 
 async function postJSON<T>(path: string, body: any): Promise<T> {
@@ -37,7 +39,7 @@ export async function downloadInserts(payload: any) {
 }
 
 export function fetchOptions(payload: any) {
-  return postJSON<import('../types').OptionsResponse>('/options', payload);
+  return postJSON<OptionsResponse>('/options', payload);
 }
 
-export const askAi = (text: string) => postJSON('/ai/ask', { text });
+export const askAi = (text: string) => postJSON<AskAiResponse>('/ai/ask', { text });
