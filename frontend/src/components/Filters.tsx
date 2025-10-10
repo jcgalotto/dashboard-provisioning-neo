@@ -29,6 +29,7 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
     }
     let cancelled = false;
     setLoadingOpts(true);
+    setOpts(EMPTY_OPTIONS);
     fetchOptions({
       db: credentials,
       filters: {
@@ -58,7 +59,7 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
     };
   }, [credentials, filters.pri_ne_id, filters.start_date, filters.end_date]);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     if (name === 'pri_id') {
       const trimmed = value.trim();
@@ -72,7 +73,21 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
       }
       return;
     }
-    onChange({ ...filters, [name]: value });
+    if (name === 'pri_ne_id') {
+      onChange({
+        ...filters,
+        pri_ne_id: value,
+        pri_action: undefined,
+        pri_ne_group: undefined,
+        pri_status: undefined,
+      });
+      return;
+    }
+    if (name === 'start_date' || name === 'end_date') {
+      onChange({ ...filters, [name]: value });
+      return;
+    }
+    onChange({ ...filters, [name]: value || undefined });
   };
 
   return (
@@ -124,10 +139,9 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
           pri_action (opcional)
           <select
             className="mt-1 rounded border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 focus:outline-none focus:ring"
+            name="pri_action"
             value={filters.pri_action ?? ''}
-            onChange={(event) =>
-              onChange({ ...filters, pri_action: event.target.value || undefined })
-            }
+            onChange={handleChange}
             disabled={loadingOpts || !filters.pri_ne_id || !opts.pri_action.length}
           >
             <option value="">Todos</option>
@@ -142,10 +156,9 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
           pri_ne_group (opcional)
           <select
             className="mt-1 rounded border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 focus:outline-none focus:ring"
+            name="pri_ne_group"
             value={filters.pri_ne_group ?? ''}
-            onChange={(event) =>
-              onChange({ ...filters, pri_ne_group: event.target.value || undefined })
-            }
+            onChange={handleChange}
             disabled={loadingOpts || !filters.pri_ne_id || !opts.pri_ne_group.length}
           >
             <option value="">Todos</option>
@@ -160,10 +173,9 @@ export default function FiltersForm({ filters, credentials, onChange, onSearch, 
           pri_status (opcional)
           <select
             className="mt-1 rounded border border-slate-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 focus:outline-none focus:ring"
+            name="pri_status"
             value={filters.pri_status ?? ''}
-            onChange={(event) =>
-              onChange({ ...filters, pri_status: event.target.value || undefined })
-            }
+            onChange={handleChange}
             disabled={loadingOpts || !filters.pri_ne_id || !opts.pri_status.length}
           >
             <option value="">Todos</option>
