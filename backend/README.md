@@ -21,9 +21,9 @@ La API queda disponible en `http://localhost:8000` y permite solicitudes desde `
 
 ### Conexión a Oracle
 
-- Los servidores Oracle antiguos (11g/12c) suelen requerir modo **THICK**. Instalá Oracle Instant Client 19 u 21 y seteá `FORCE_ORACLE_THICK=1` o dejá que el backend reintente en THICK cuando el driver devuelva `DPY-3010`.
-- Si no encuentra el Instant Client, definí `ORACLE_CLIENT_LIB_DIR` (o agregá la carpeta al `PATH`). En Windows necesitás el Microsoft Visual C++ Redistributable 2017-2022 x64 antes de descomprimir el Instant Client.
-- Para bases identificadas por **SID**, podés cargar `host:puerto:SID` en el campo "Service"; el backend lo interpretará automáticamente.
+- Los servidores Oracle antiguos (11g/12c) requieren modo **THICK** (Oracle Instant Client 19/21) inicializado antes de la primera conexión.
+- En Windows instalá el Microsoft Visual C++ Redistributable 2017-2022 x64, descomprimí el Instant Client y definí `ORACLE_CLIENT_LIB_DIR=C:\\oracle\\instantclient_19_23` (o agregá la carpeta al `PATH`), luego reiniciá la terminal o servicio.
+- Si la base usa **SID**, el campo "Service" de la UI puede ser `host:puerto:SID`; caso contrario `host:puerto/servicio`.
 
 ### Endpoints principales
 
