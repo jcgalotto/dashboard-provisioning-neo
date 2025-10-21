@@ -17,6 +17,7 @@ RAW_OVERRIDES = {
   "pri_id": "(SELECT NVL(MAX(pri_id), 0) + 1 FROM swp_provisioning_interfaces)",
   "pri_action_date": "TO_DATE('30-04-2025 00:00:01', 'DD-MM-YYYY HH24:MI:SS')",
   "pri_system_date": "TO_DATE('30-04-2025 00:00:01', 'DD-MM-YYYY HH24:MI:SS')",
+  "pri_status": "PENDING"
 }
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
