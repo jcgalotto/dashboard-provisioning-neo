@@ -103,3 +103,16 @@ def fetch_all(con, sql: str, binds: dict) -> list[dict]:
     rows = cur.fetchall()
     cols = [d[0].lower() for d in cur.description]
     return [dict(zip(cols, r)) for r in rows]
+
+
+def fetch_one(con, sql: str, binds: dict):
+    cur = con.cursor()
+    cur.execute(sql, binds)
+    return cur.fetchone()
+
+
+def fetch_count(con, sql: str, binds: dict) -> int:
+    cur = con.cursor()
+    cur.execute(sql, binds)
+    row = cur.fetchone()
+    return int(row[0]) if row and row[0] is not None else 0
