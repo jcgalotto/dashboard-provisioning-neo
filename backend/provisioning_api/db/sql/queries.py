@@ -13,6 +13,8 @@ def build_sql(filters: dict, include_pagination: bool, use_legacy_pagination: bo
         "AND TO_DATE(:end_date,'YYYY-MM-DD HH24:MI:SS')",
         "a.pri_ne_id = :pri_ne_id",
     ]
+    # Restrict to allowed level actions
+    where.append("a.pri_level_action IN ('U','R')")
     binds = {
         "start_date": filters["start_date"],
         "end_date": filters["end_date"],
